@@ -30,12 +30,13 @@ Copy `.env.example` to `.env` and fill in values locally. Never commit `.env`.
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `INSTAGRAM_ACCESS_TOKEN` | Yes | Long-lived Instagram Graph API access token |
+| `INSTAGRAM_ACCESS_TOKEN` | Yes | Instagram User access token (prefer long-lived) |
 | `INSTAGRAM_ACCOUNT_ID` | Yes | Instagram professional account ID |
-| `INSTAGRAM_GRAPH_API_BASE` | No | Default `https://graph.facebook.com`. Use `https://graph.instagram.com` for Instagram Login tokens |
+| `INSTAGRAM_GRAPH_API_BASE` | No* | Default `https://graph.facebook.com`. *Use `https://graph.instagram.com` for Instagram Login tokens |
 | `INSTAGRAM_API_VERSION` | No | Default `v22.0` |
+| `INSTAGRAM_APP_SECRET` | No | App secret — only for short→long-lived token exchange |
 | `PORT` | No | HTTP port (default `3000`) |
-| `MCP_AUTH_TOKEN` | No | If set, `/mcp` requires `Authorization: Bearer <token>` |
+| `MCP_AUTH_TOKEN` | No | If set, `/mcp` and `/exchange-instagram-token` require `Authorization: Bearer <token>` |
 
 ## Local development
 
@@ -52,7 +53,21 @@ npm run build && npm start
 Endpoints:
 
 - Health: `GET http://localhost:3000/health`
+- Auth debug (safe): `GET http://localhost:3000/debug-instagram-auth`
 - MCP (Streamable HTTP): `http://localhost:3000/mcp`
+
+### Instagram Login tokens (short vs long-lived)
+
+- **App Dashboard → Generate token**: already **long-lived** (~60 days). Put it in `INSTAGRAM_ACCESS_TOKEN`.
+- **OAuth / Business Login** (authorization code → token): returns a **short-lived** token (~1 hour). Exchange it before production use:
+
+  1. Set `INSTAGRAM_ACCESS_TOKEN` to the short-lived token (temporarily).
+  2. Set `INSTAGRAM_APP_SECRET` to your Instagram app secret.
+  3. `POST /exchange-instagram-token` (send `Authorization: Bearer <MCP_AUTH_TOKEN>` if configured).
+  4. Copy `long_lived_access_token` from the JSON into `INSTAGRAM_ACCESS_TOKEN` on Vercel.
+  5. Redeploy / restart. Remove the short-lived value.
+
+Auth is sent as Meta’s documented `access_token` query parameter. Tokens are trimmed (whitespace, quotes, accidental `Bearer` / `access_token=` prefixes) before use. The full token is never logged or returned by `/debug-instagram-auth`.
 
 Type-check without running:
 
