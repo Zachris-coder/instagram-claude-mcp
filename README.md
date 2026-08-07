@@ -31,7 +31,7 @@ Copy `.env.example` to `.env` and fill in values locally. Never commit `.env`.
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `INSTAGRAM_ACCESS_TOKEN` | Yes | Instagram User access token (prefer long-lived) |
-| `INSTAGRAM_ACCOUNT_ID` | Yes | Instagram professional account ID |
+| `INSTAGRAM_ACCOUNT_ID` | Conditional | Optional for Instagram Login (`graph.instagram.com`) — IG ID is resolved from `/me.user_id`. Required for `graph.facebook.com` |
 | `INSTAGRAM_GRAPH_API_BASE` | No* | Default `https://graph.facebook.com`. *Use `https://graph.instagram.com` for Instagram Login tokens |
 | `INSTAGRAM_API_VERSION` | No | Default `v22.0` |
 | `INSTAGRAM_APP_SECRET` | No | App secret — only for short→long-lived token exchange |
@@ -54,7 +54,18 @@ Endpoints:
 
 - Health: `GET http://localhost:3000/health`
 - Auth debug (safe): `GET http://localhost:3000/debug-instagram-auth`
+- Profile tool debug: `GET http://localhost:3000/debug-instagram-profile`
+- Media list debug: `GET http://localhost:3000/debug-instagram-media`
 - MCP (Streamable HTTP): `http://localhost:3000/mcp`
+
+### Instagram Login `id` vs `user_id`
+
+On `graph.instagram.com`, `GET /me` returns:
+
+- `id` — app-scoped ID (not used for `/media`)
+- `user_id` — Instagram professional account ID (`<IG_ID>`) used for `/{user_id}/media`, insights, etc.
+
+This server resolves `user_id` from `/me` for Instagram Login and does **not** blindly trust `INSTAGRAM_ACCOUNT_ID` (which is often mistakenly set to `id`).
 
 ### Instagram Login tokens (short vs long-lived)
 

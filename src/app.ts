@@ -63,6 +63,30 @@ export function createApp(): express.Express {
     }
   });
 
+  /** Safe test for get_instagram_profile (same client path as the MCP tool). */
+  app.get("/debug-instagram-profile", async (_req: Request, res: Response) => {
+    try {
+      const client = getInstagramClient();
+      const result = await client.debugProfile();
+      res.status(result.ok ? 200 : 502).json(result);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      res.status(500).json({ ok: false, error: message });
+    }
+  });
+
+  /** Safe test for list_instagram_media (uses /me.user_id as <IG_ID>). */
+  app.get("/debug-instagram-media", async (_req: Request, res: Response) => {
+    try {
+      const client = getInstagramClient();
+      const result = await client.debugListMedia(5);
+      res.status(result.ok ? 200 : 502).json(result);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      res.status(500).json({ ok: false, error: message });
+    }
+  });
+
   /**
    * Exchange a short-lived Instagram Login user token for a long-lived token.
    * Requires INSTAGRAM_APP_SECRET. If MCP_AUTH_TOKEN is set, Bearer auth is required.

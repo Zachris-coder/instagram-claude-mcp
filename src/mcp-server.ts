@@ -52,7 +52,7 @@ export function createInstagramMcpServer(client: InstagramClient): McpServer {
     "get_instagram_profile",
     {
       description:
-        "Get the connected Instagram professional account profile (username, bio, follower counts, etc.). Read-only.",
+        "Get the connected Instagram professional account profile (username, follower counts, etc.). For Instagram Login this uses GET /me and resolves user_id automatically. Read-only.",
       inputSchema: z.object({
         fields: z
           .string()
@@ -76,7 +76,7 @@ export function createInstagramMcpServer(client: InstagramClient): McpServer {
     "list_instagram_media",
     {
       description:
-        "List recent Instagram media for the connected professional account (posts, reels, carousels). Read-only.",
+        "List recent Instagram media for the connected professional account (posts, reels, carousels). Uses the Instagram Login IG user_id from /me for /{user_id}/media. Read-only.",
       inputSchema: z.object({
         limit: z
           .number()

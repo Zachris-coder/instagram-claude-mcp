@@ -41,7 +41,8 @@ function requireEnv(name: string): string {
 
 export type AppConfig = {
   accessToken: string;
-  accountId: string;
+  /** Optional. For Instagram Login, IG ID is resolved from /me.user_id. */
+  accountId: string | undefined;
   graphApiBase: string;
   apiVersion: string;
   port: number;
@@ -66,9 +67,22 @@ export function loadConfig(): AppConfig {
       ? sanitizeSecret(appSecretRaw)
       : undefined;
 
+  const accountIdRaw = process.env.INSTAGRAM_ACCOUNT_ID;
+  const accountId =
+    accountIdRaw && accountIdRaw.trim()
+      ? sanitizeSecret(accountIdRaw)
+      : undefined;
+
+  const isInstagramLogin = graphApiBase.includes("graph.instagram.com");
+  if (!isInstagramLogin && !accountId) {
+    throw new Error(
+      "Missing required environment variable: INSTAGRAM_ACCOUNT_ID (required when not using https://graph.instagram.com).",
+    );
+  }
+
   return {
     accessToken: requireEnv("INSTAGRAM_ACCESS_TOKEN"),
-    accountId: requireEnv("INSTAGRAM_ACCOUNT_ID"),
+    accountId,
     graphApiBase,
     apiVersion,
     port: Number(process.env.PORT) || 3000,
