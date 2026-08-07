@@ -70,21 +70,32 @@ Connect with transport **Streamable HTTP** and URL `http://localhost:3000/mcp`.
 
 ## Deploy as a remote MCP server
 
-1. Push this repo to GitHub (or deploy the folder with your host’s CLI).
-2. Deploy to any Node host that provides HTTPS (Railway, Render, Fly.io, Cloud Run, etc.).
-3. Set `INSTAGRAM_ACCESS_TOKEN` and `INSTAGRAM_ACCOUNT_ID` as **secret environment variables** in the host dashboard. Do not put them in source.
-4. Optionally set `MCP_AUTH_TOKEN` to require a bearer token on `/mcp`.
-5. Expose a public HTTPS URL. The MCP endpoint is `/mcp`.
+### Vercel (serverless Express)
 
-Example production URL:
+This project is set up for Vercel’s Express runtime: the app is **exported as a default Express handler** and only calls `app.listen()` when **not** running on Vercel (`VERCEL=1`). That matches serverless invocation — there is no permanently running Node process in production.
+
+1. Import the GitHub repo in Vercel (or run `vercel`).
+2. Set Project Environment Variables (Production/Preview):
+   - `INSTAGRAM_ACCESS_TOKEN`
+   - `INSTAGRAM_ACCOUNT_ID`
+   - Optional: `MCP_AUTH_TOKEN`, `INSTAGRAM_GRAPH_API_BASE`, `INSTAGRAM_API_VERSION`
+3. Deploy. Endpoints stay the same:
+   - `https://your-app.vercel.app/health`
+   - `https://your-app.vercel.app/mcp` (Streamable HTTP)
+
+`vercel.json` pins the Express framework, runs `npm run build`, and sets function `maxDuration` to 60s for Graph API calls. MCP handling is **stateless** (fresh transport per request), which is compatible with Vercel Functions / Fluid compute.
+
+Claude connector URL example:
 
 ```text
-https://your-service.example.com/mcp
+https://your-app.vercel.app/mcp
 ```
 
-The server binds `0.0.0.0` and reads `PORT`, which most platforms inject automatically.
+### Other Node hosts (Railway, Render, Fly.io, Cloud Run, etc.)
 
-Build/start commands:
+1. Push this repo and deploy as a normal Node service.
+2. Set the same secret environment variables in the host dashboard.
+3. The process runs `npm start` → `node dist/index.js`, which listens on `PORT`.
 
 ```bash
 npm install
@@ -135,10 +146,12 @@ Add to `.cursor/mcp.json` (or your MCP config):
 
 ```text
 src/
-  index.ts              # Express app, /health, Streamable HTTP /mcp
+  app.ts                # Express app factory (/health, /mcp) — default-exported for Vercel
+  index.ts              # Entry: export app; listen only when not on Vercel
   config.ts             # Environment configuration
   mcp-server.ts         # MCP tool registration
   instagram/client.ts   # Official Graph API client (read-only)
+vercel.json             # Vercel Express + function limits
 ```
 
 ## License
