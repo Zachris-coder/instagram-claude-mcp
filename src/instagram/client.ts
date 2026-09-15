@@ -93,7 +93,6 @@ const FACEBOOK_LOGIN_PROFILE_FIELDS = [
   "follows_count",
   "media_count",
   "profile_picture_url",
-  "account_type",
 ].join(",");
 
 const DEFAULT_MEDIA_FIELDS = [
